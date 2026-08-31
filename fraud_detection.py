@@ -18,18 +18,8 @@ from sklearn.svm import SVC
 warnings.filterwarnings("ignore")
 
 DATA_FILE = "Fraud.csv"
-
-REQUIRED_COLUMNS = [
-    "step", "type", "amount", "nameOrig", "oldbalanceOrg",
-    "newbalanceOrig", "nameDest", "oldbalanceDest",
-    "newbalanceDest", "isFraud", "isFlaggedFraud"
-]
-
-FEATURE_COLUMNS = [
-    "step", "type", "amount", "nameOrig", "oldbalanceOrg",
-    "newbalanceOrig", "nameDest", "oldbalanceDest", "newbalanceDest"
-]
-
+REQUIRED_COLUMNS = ["step", "type", "amount", "nameOrig", "oldbalanceOrg","newbalanceOrig", "nameDest", "oldbalanceDest","newbalanceDest", "isFraud", "isFlaggedFraud"]
+FEATURE_COLUMNS = ["step", "type", "amount", "nameOrig", "oldbalanceOrg","newbalanceOrig", "nameDest", "oldbalanceDest", "newbalanceDest"]
 TARGET_COLUMN = "isFraud"
 
 
@@ -46,10 +36,7 @@ def load_and_validate_data():
     missing_columns = [col for col in REQUIRED_COLUMNS if col not in df.columns]
     if missing_columns:
         raise ValueError(
-            "The following required columns are missing: "
-            + ", ".join(missing_columns)
-        )
-
+            "The following required columns are missing: "+ ", ".join(missing_columns))
     return df
 
 
@@ -125,17 +112,10 @@ def build_preprocessor(X):
     )
 
     numerical_pipeline = Pipeline(
-        steps=[
-            ("imputer", SimpleImputer(strategy="median")),
-        ]
+        steps=[("imputer", SimpleImputer(strategy="median")),]
     )
 
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ("categorical", categorical_pipeline, categorical_features),
-            ("numerical", numerical_pipeline, numerical_features),
-        ]
-    )
+    preprocessor = ColumnTransformer(transformers=[("categorical", categorical_pipeline, categorical_features),("numerical", numerical_pipeline, numerical_features),])
 
     return preprocessor, categorical_features, numerical_features
 
@@ -143,56 +123,24 @@ def build_preprocessor(X):
 def train_models(X_train, y_train, preprocessor):
     """Train the three models used in the original notebook."""
     models = {
-        "LOGISTIC REGRESSION": Pipeline(
-            steps=[
-                ("preprocessor", preprocessor),
-                ("scaler", StandardScaler()),
-                (
-                    "model",
-                    LogisticRegression(
-                        max_iter=1000,
-                        class_weight="balanced"
-                    ),
-                ),
-            ]
-        ),
-        "SUPPORT VECTOR MACHINE": Pipeline(
-            steps=[
-                ("preprocessor", preprocessor),
-                ("scaler", StandardScaler()),
-                (
-                    "model",
-                    SVC(
-                        class_weight="balanced"
-                    ),
-                ),
-            ]
-        ),
-        "RANDOM FOREST CLASSIFIER": Pipeline(
-            steps=[
-                ("preprocessor", preprocessor),
-                (
-                    "model",
-                    RandomForestClassifier(
-                        n_estimators=200,
-                        random_state=2529,
-                        class_weight="balanced",
-                        n_jobs=-1
-                    ),
-                ),
-            ]
-        ),
+        "LOGISTIC REGRESSION": Pipeline(steps=[
+            ("preprocessor", preprocessor),
+            ("scaler", StandardScaler()),
+            ("model", LogisticRegression(max_iter=1000, class_weight="balanced")),
+        ]),
+        "SUPPORT VECTOR MACHINE": Pipeline(steps=[
+            ("preprocessor", preprocessor),
+            ("scaler", StandardScaler()),
+            ("model", SVC(class_weight="balanced")),
+        ]),
+        "RANDOM FOREST CLASSIFIER": Pipeline(steps=[
+            ("preprocessor", preprocessor),
+            ("model", RandomForestClassifier(
+                n_estimators=200, random_state=2529, class_weight="balanced", n_jobs=-1
+            )),
+        ]),
     }
-
     trained_models = {}
-
-    for name, model in models.items():
-        print(f"\nTraining {name}...")
-        model.fit(X_train, y_train)
-        trained_models[name] = model
-        print(f"{name} training completed.")
-
-    return trained_models
 
 
 def evaluate_models(models, X_test, y_test):
